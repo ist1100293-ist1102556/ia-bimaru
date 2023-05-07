@@ -731,14 +731,7 @@ def and_or_graph_search(problem):
         if state in path:
             return None
         for action in problem.actions(state):
-            plan = and_search(
-                problem.result(state, action),
-                problem,
-                path
-                + [
-                    state,
-                ],
-            )
+            plan = and_search(problem.result(state, action), problem, path + [state])
             if plan is not None:
                 return [action, plan]
 

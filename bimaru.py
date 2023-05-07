@@ -2,9 +2,9 @@
 # Devem alterar as classes e funções neste ficheiro de acordo com as instruções do enunciado.
 # Além das funções e classes já definidas, podem acrescentar outras que considerem pertinentes.
 
-# Grupo 00:
-# 00000 Nome1
-# 00000 Nome2
+# Grupo 42:
+# 100293 Carlos Felgueiras
+# 102556 Daniel Carvalho
 
 import sys
 from search import (
@@ -35,22 +35,33 @@ class BimaruState:
 class Board:
     """Representação interna de um tabuleiro de Bimaru."""
 
+    board = [[None for i in range(10)] for j in range(10)]
+
+    rows, columns = [], []
+
+    ships = [4, 3, 2, 1]
+
     def get_value(self, row: int, col: int) -> str:
         """Devolve o valor na respetiva posição do tabuleiro."""
-        # TODO
-        pass
+        return self.board[row, col]
 
     def adjacent_vertical_values(self, row: int, col: int) -> (str, str):
         """Devolve os valores imediatamente acima e abaixo,
         respectivamente."""
-        # TODO
-        pass
+        if row == 0:
+            return (None, self.board[row + 1, col])
+        if row == 9:
+            return (self.board[row - 1, col], None)
+        return (self.board[row - 1, col], self.board[row + 1, col])
 
     def adjacent_horizontal_values(self, row: int, col: int) -> (str, str):
         """Devolve os valores imediatamente à esquerda e à direita,
         respectivamente."""
-        # TODO
-        pass
+        if col == 0:
+            return (None, self.board[row, col + 1])
+        if col == 9:
+            return (self.board[row, col - 1], None)
+        return (self.board[row, col - 1], self.board[row, col + 1])
 
     @staticmethod
     def parse_instance():
@@ -63,8 +74,16 @@ class Board:
             > from sys import stdin
             > line = stdin.readline().split()
         """
-        # TODO
-        pass
+        board = Board()
+
+        board.rows = [eval(x) for x in input().split("\t")[1:]]
+        board.columns = [eval(x) for x in input().split("\t")[1:]]
+
+        hints = eval(input())
+
+        for i in range(hints):
+            hint = input().split("\t")[1:]
+            board.board[eval(hint[0]), eval(hint[1])] = hint[2]
 
     # TODO: outros metodos da classe
 
