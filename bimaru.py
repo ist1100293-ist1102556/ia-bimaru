@@ -35,7 +35,7 @@ class BimaruState:
 class Board:
     """Representação interna de um tabuleiro de Bimaru."""
 
-    board = [[None for i in range(10)] for j in range(10)]
+    board = [[" " for i in range(10)] for j in range(10)]
 
     rows, columns = [], []
 
@@ -83,8 +83,11 @@ class Board:
 
         for i in range(hints):
             hint = input().split("\t")[1:]
-            board.board[eval(hint[0]), eval(hint[1])] = hint[2]
+            board.board[eval(hint[0])][eval(hint[1])] = hint[2]
+        return board
 
+    def display(self):
+        print("\n".join(["".join(x) for x in self.board]))            
     # TODO: outros metodos da classe
 
 
@@ -124,6 +127,8 @@ class Bimaru(Problem):
 
 
 if __name__ == "__main__":
+    board=Board.parse_instance()
+    board.display()
     # TODO:
     # Ler o ficheiro do standard input,
     # Usar uma técnica de procura para resolver a instância,
