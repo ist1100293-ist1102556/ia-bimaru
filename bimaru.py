@@ -87,7 +87,8 @@ class Board:
         return board
 
     def display(self):
-        print("\n".join(["".join(x) for x in self.board]))            
+        print("\n".join(["".join(x) for x in self.board]))
+
     # TODO: outros metodos da classe
 
 
@@ -127,7 +128,7 @@ class Bimaru(Problem):
 
 
 if __name__ == "__main__":
-    board=Board.parse_instance()
+    board = Board.parse_instance()
     board.display()
     # TODO:
     # Ler o ficheiro do standard input,
