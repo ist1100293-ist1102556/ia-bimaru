@@ -308,7 +308,7 @@ def tanh(x):
 
 
 def tanh_derivative(value):
-    return 1 - (value ** 2)
+    return 1 - (value**2)
 
 
 def leaky_relu(x, alpha=0.01):

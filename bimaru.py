@@ -35,15 +35,20 @@ class BimaruState:
 class Board:
     """Representação interna de um tabuleiro de Bimaru."""
 
-    board = [[" " for i in range(10)] for j in range(10)]
+    def __init__(self, rows, columns) -> None:
+        self.board = [[" " for i in range(10)] for j in range(10)]
 
-    rows, columns = [], []
+        self.rows = rows
+        self.columns = columns
 
-    ships = [4, 3, 2, 1]
+        self.ships = [4, 3, 2, 1]
 
     def get_value(self, row: int, col: int) -> str:
         """Devolve o valor na respetiva posição do tabuleiro."""
         return self.board[row, col]
+
+    def set_value(self, row: int, col: int, val: str) -> None:
+        self.board[row, col] = val
 
     def adjacent_vertical_values(self, row: int, col: int) -> (str, str):
         """Devolve os valores imediatamente acima e abaixo,
@@ -74,10 +79,11 @@ class Board:
             > from sys import stdin
             > line = stdin.readline().split()
         """
-        board = Board()
 
-        board.rows = [eval(x) for x in input().split("\t")[1:]]
-        board.columns = [eval(x) for x in input().split("\t")[1:]]
+        rows = [eval(x) for x in input().split("\t")[1:]]
+        columns = [eval(x) for x in input().split("\t")[1:]]
+
+        board = Board(rows, columns)
 
         hints = eval(input())
 
