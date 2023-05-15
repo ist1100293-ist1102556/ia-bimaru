@@ -183,6 +183,7 @@ class Board:
         self.set_value_bulk(positions_to_clean, ".")
 
     def clear_positions(self):
+        """Clears all surroundings of all positions."""
         for i in range(10):
             for j in range(10):
                 self.clear_surroundings(i, j)
