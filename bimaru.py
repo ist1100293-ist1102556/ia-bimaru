@@ -53,20 +53,29 @@ class Board:
     def adjacent_vertical_values(self, row: int, col: int) -> (str, str):
         """Devolve os valores imediatamente acima e abaixo,
         respectivamente."""
-        if row == 0:
-            return (None, self.board[row + 1, col])
-        if row == 9:
-            return (self.board[row - 1, col], None)
-        return (self.board[row - 1, col], self.board[row + 1, col])
+        return (
+            self.board[row - 1][col] if row - 1 >= 0 else None,
+            self.board[row + 1][col] if row + 1 <= 9 else None,
+        )
 
     def adjacent_horizontal_values(self, row: int, col: int) -> (str, str):
         """Devolve os valores imediatamente à esquerda e à direita,
         respectivamente."""
-        if col == 0:
-            return (None, self.board[row, col + 1])
-        if col == 9:
-            return (self.board[row, col - 1], None)
-        return (self.board[row, col - 1], self.board[row, col + 1])
+        return (
+            self.board[row][col - 1] if col - 1 >= 0 else None,
+            self.board[row][col + 1] if col + 1 <= 9 else None,
+        )
+
+    def adjacent_diagonal_values(self, row: int, col: int) -> (str, str, str, str):
+        """Devolve os valores nas diagonais imediatas do quadrado escolhido.
+        Order: LU, RU, LD, RD"""
+        return (
+            self.board[row - 1][col - 1] if row - 1 >= 0 and col - 1 >= 0 else None,
+            self.board[row - 1][col + 1] if row - 1 >= 0 and col + 1 <= 9 else None,
+            self.board[row + 1][col - 1] if row + 1 <= 9 and col - 1 >= 0 else None,
+            self.board[row + 1][col + 1] if row + 1 <= 9 and col + 1 <= 9 else None,
+        )
+        pass
 
     @staticmethod
     def parse_instance():
