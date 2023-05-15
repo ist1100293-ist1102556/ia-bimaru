@@ -47,7 +47,7 @@ class Board:
 
     def get_value(self, row: int, col: int) -> str:
         """Devolve o valor na respetiva posição do tabuleiro."""
-        return self.board[row, col]
+        return self.board[row][col]
 
     def set_value(self, row: int, col: int, val: str) -> None:
         """Escreve na posição escolhida, se ja estiver preenchida, nao faz nada"""
@@ -84,7 +84,34 @@ class Board:
             self.board[row + 1][col - 1] if row + 1 <= 9 and col - 1 >= 0 else None,
             self.board[row + 1][col + 1] if row + 1 <= 9 and col + 1 <= 9 else None,
         )
-        pass
+
+    def adjacent_vertical_coords(self, row: int, col: int) -> (tuple, tuple):
+        """Devolve as coordenadas imediatamente acima e abaixo,
+        respectivamente."""
+        return (
+            (row - 1, col) if row - 1 >= 0 else None,
+            (row + 1, col) if row + 1 <= 9 else None,
+        )
+
+    def adjacent_horizontal_coords(self, row: int, col: int) -> (tuple, tuple):
+        """Devolve as coordenadas imediatamente à esquerda e à direita,
+        respectivamente."""
+        return (
+            (row, col - 1) if col - 1 >= 0 else None,
+            (row, col + 1) if col + 1 <= 9 else None,
+        )
+
+    def adjacent_diagonal_coords(
+        self, row: int, col: int
+    ) -> (tuple, tuple, tuple, tuple):
+        """Devolve as coordenadas nas diagonais imediatas do quadrado escolhido.
+        Order: LU, RU, LD, RD"""
+        return (
+            (row - 1, col - 1) if row - 1 >= 0 and col - 1 >= 0 else None,
+            (row - 1, col + 1) if row - 1 >= 0 and col + 1 <= 9 else None,
+            (row + 1, col - 1) if row + 1 <= 9 and col - 1 >= 0 else None,
+            (row + 1, col + 1) if row + 1 <= 9 and col + 1 <= 9 else None,
+        )
 
     def fill_row(self, row: int) -> None:
         """Given a specific row, fills all empty spaces with water."""
@@ -110,6 +137,56 @@ class Board:
                 self.fill_column(i)
                 self.columns[i] = -1
 
+    def set_value_bulk(self, lst: list, val: str) -> None:
+        """Given a list of tuples (or None), sets the values on the positions represented by the tuples to the value given."""
+        for pos in lst:
+            if pos:
+                self.set_value(pos[0], pos[1], val)
+
+    def clear_surroundings(self, row: int, col: int) -> None:
+        """Clears the surroundings of a specific position, depending on what is there."""
+        current_simbol = self.get_value(row, col)
+
+        if current_simbol == " " or current_simbol == "W" or current_simbol == ".":
+            return
+
+        positions_to_clean = []
+
+        for coord in self.adjacent_diagonal_coords(row, col):
+            positions_to_clean.append(coord)
+
+        adjacent_horizontal = self.adjacent_horizontal_coords(row, col)
+        adjacent_vertical = self.adjacent_vertical_coords(row, col)
+
+        if current_simbol == "T":
+            positions_to_clean.append(adjacent_horizontal[0])
+            positions_to_clean.append(adjacent_horizontal[1])
+            positions_to_clean.append(adjacent_vertical[0])
+        elif current_simbol == "B":
+            positions_to_clean.append(adjacent_horizontal[0])
+            positions_to_clean.append(adjacent_horizontal[1])
+            positions_to_clean.append(adjacent_vertical[1])
+        elif current_simbol == "L":
+            positions_to_clean.append(adjacent_vertical[0])
+            positions_to_clean.append(adjacent_vertical[1])
+            positions_to_clean.append(adjacent_horizontal[0])
+        elif current_simbol == "R":
+            positions_to_clean.append(adjacent_vertical[0])
+            positions_to_clean.append(adjacent_vertical[1])
+            positions_to_clean.append(adjacent_horizontal[1])
+        elif current_simbol == "C":
+            positions_to_clean.append(adjacent_vertical[0])
+            positions_to_clean.append(adjacent_vertical[1])
+            positions_to_clean.append(adjacent_horizontal[0])
+            positions_to_clean.append(adjacent_horizontal[1])
+
+        self.set_value_bulk(positions_to_clean, ".")
+
+    def clear_positions(self):
+        for i in range(10):
+            for j in range(10):
+                self.clear_surroundings(i, j)
+
     @staticmethod
     def parse_instance():
         """Lê o test do standard input (stdin) que é passado como argumento
@@ -130,6 +207,7 @@ class Board:
         return board
 
     def display(self):
+        print("Remaining positions: " + str(self.remaining_spaces))
         print("\n".join(["".join(x) for x in self.board]))
 
     # TODO: outros metodos da classe
@@ -175,6 +253,8 @@ if __name__ == "__main__":
     board.display()
     board.clear_columns()
     board.clear_rows()
+    board.display()
+    board.clear_positions()
     board.display()
     # TODO:
     # Ler o ficheiro do standard input,
