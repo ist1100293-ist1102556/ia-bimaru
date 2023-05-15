@@ -170,14 +170,12 @@ class Board:
         for i in range(10):
             if self.rows[i] >= 1 and self.row_empty_spaces(i) == self.rows[i]:
                 self.complete_row(i)
-                self.rows[i] == -1
 
     def complete_columns(self) -> None:
         """Completes all rows that are valid"""
         for i in range(10):
             if self.columns[i] >= 1 and self.column_empty_spaces(i) == self.columns[i]:
                 self.complete_column(i)
-                self.columns[i] == -1
 
     def set_value_bulk(self, lst: list, val: str) -> None:
         """Given a list of tuples (or None), sets the values on the positions represented by the tuples to the value given."""
@@ -308,6 +306,7 @@ class Bimaru(Problem):
 
 if __name__ == "__main__":
     board = Board.parse_instance()
+    board.display()
     board.cleanup()
     board.display()
     # TODO:
