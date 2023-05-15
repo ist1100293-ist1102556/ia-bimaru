@@ -207,12 +207,12 @@ class Board:
         return board
 
     def display(self):
-        print("<-------------->")
+        print("--------------")
         print("Remaining positions: " + str(self.remaining_spaces))
         print("\n".join(["".join(x) for x in self.board]))
         print(str(self.rows))
         print(str(self.columns))
-        print("<-------------->")
+        print("--------------")
 
     # TODO: outros metodos da classe
 
@@ -254,10 +254,8 @@ class Bimaru(Problem):
 
 if __name__ == "__main__":
     board = Board.parse_instance()
-    board.display()
     board.clear_columns()
     board.clear_rows()
-    board.display()
     board.clear_positions()
     board.display()
     # TODO:
