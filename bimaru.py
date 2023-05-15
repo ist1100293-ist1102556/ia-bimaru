@@ -43,12 +43,21 @@ class Board:
 
         self.ships = [4, 3, 2, 1]
 
+        self.remaining_spaces = 100
+
     def get_value(self, row: int, col: int) -> str:
         """Devolve o valor na respetiva posição do tabuleiro."""
         return self.board[row, col]
 
     def set_value(self, row: int, col: int, val: str) -> None:
-        self.board[row, col] = val
+        """Escreve na posição escolhida, se ja estiver preenchida, nao faz nada"""
+        if self.board[row, col] == " ":
+            self.board[row, col] = val
+            self.remaining_spaces -= 1
+
+        if val != "W" or val != ".":
+            self.rows[row] -= 1
+            self.rows[col] -= 1
 
     def adjacent_vertical_values(self, row: int, col: int) -> (str, str):
         """Devolve os valores imediatamente acima e abaixo,
@@ -92,7 +101,8 @@ class Board:
 
         for i in range(hints):
             hint = input().split("\t")[1:]
-            board.board[eval(hint[0])][eval(hint[1])] = hint[2]
+            board.set_value(eval(hint[0]), eval(hint[1]), hint[2])
+
         return board
 
     def display(self):
