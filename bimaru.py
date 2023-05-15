@@ -51,8 +51,8 @@ class Board:
 
     def set_value(self, row: int, col: int, val: str) -> None:
         """Escreve na posição escolhida, se ja estiver preenchida, nao faz nada"""
-        if self.board[row, col] == " ":
-            self.board[row, col] = val
+        if self.board[row][col] == " ":
+            self.board[row][col] = val
             self.remaining_spaces -= 1
 
         if val != "W" or val != ".":
@@ -85,6 +85,30 @@ class Board:
             self.board[row + 1][col + 1] if row + 1 <= 9 and col + 1 <= 9 else None,
         )
         pass
+
+    def fill_row(self, row: int) -> None:
+        """Given a specific row, fills all empty spaces with water."""
+        for i in range(10):
+            self.set_value(row, i, ".")
+
+    def fill_column(self, col: int) -> None:
+        """Given a specific column, fills all empty spaces with water."""
+        for i in range(10):
+            self.set_value(i, col, ".")
+
+    def clear_rows(self) -> None:
+        """Fills all complete rows with water."""
+        for i in range(10):
+            if self.rows[i] == 0:
+                self.fill_row(i)
+                self.rows[i] = -1
+
+    def clear_columns(self) -> None:
+        """Fills all complete collumns with water."""
+        for i in range(10):
+            if self.columns[i] == 0:
+                self.fill_column(i)
+                self.columns[i] = -1
 
     @staticmethod
     def parse_instance():
@@ -148,6 +172,9 @@ class Bimaru(Problem):
 
 if __name__ == "__main__":
     board = Board.parse_instance()
+    board.display()
+    board.clear_columns()
+    board.clear_rows()
     board.display()
     # TODO:
     # Ler o ficheiro do standard input,
