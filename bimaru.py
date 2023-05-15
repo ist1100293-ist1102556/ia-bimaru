@@ -55,7 +55,7 @@ class Board:
             self.board[row][col] = val
             self.remaining_spaces -= 1
 
-        if val != "W" or val != ".":
+        if val != "W" and val != ".":
             self.rows[row] -= 1
             self.rows[col] -= 1
 
@@ -207,8 +207,12 @@ class Board:
         return board
 
     def display(self):
+        print("<-------------->")
         print("Remaining positions: " + str(self.remaining_spaces))
         print("\n".join(["".join(x) for x in self.board]))
+        print(str(self.rows))
+        print(str(self.columns))
+        print("<-------------->")
 
     # TODO: outros metodos da classe
 
