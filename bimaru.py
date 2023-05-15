@@ -55,9 +55,9 @@ class Board:
             self.board[row][col] = val
             self.remaining_spaces -= 1
 
-        if val != "W" and val != ".":
-            self.rows[row] -= 1
-            self.rows[col] -= 1
+            if val != "W" and val != ".":
+                self.rows[row] -= 1
+                self.columns[col] -= 1
 
     def adjacent_vertical_values(self, row: int, col: int) -> (str, str):
         """Devolve os valores imediatamente acima e abaixo,
@@ -230,6 +230,17 @@ class Board:
             for j in range(10):
                 self.clear_surroundings(i, j)
 
+    def cleanup(self):
+        current = -1
+
+        while self.remaining_spaces != current:
+            current = self.remaining_spaces
+            self.clear_columns()
+            self.clear_rows()
+            self.clear_positions()
+            self.complete_columns()
+            self.complete_rows()
+
     @staticmethod
     def parse_instance():
         """Lê o test do standard input (stdin) que é passado como argumento
@@ -297,11 +308,7 @@ class Bimaru(Problem):
 
 if __name__ == "__main__":
     board = Board.parse_instance()
-    board.clear_columns()
-    board.clear_rows()
-    board.clear_positions()
-    board.complete_rows()
-    board.complete_columns()
+    board.cleanup()
     board.display()
     # TODO:
     # Ler o ficheiro do standard input,
