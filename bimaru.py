@@ -137,6 +137,48 @@ class Board:
                 self.fill_column(i)
                 self.columns[i] = -1
 
+    def row_empty_spaces(self, row: int) -> int:
+        count = 0
+        for i in range(10):
+            if self.get_value(row, i) == " ":
+                count += 1
+
+        return count
+
+    def column_empty_spaces(self, col: int) -> int:
+        count = 0
+        for i in range(10):
+            if self.get_value(i, col) == " ":
+                count += 1
+
+        return count
+
+    def complete_row(self, row: int) -> None:
+        """Completes the row with boats (in case that the number of empty spaces is the same as the remaining boats)"""
+        for i in range(10):
+            # TODO: currently only placing middle parts, need to identify wich specific part it is
+            self.set_value(row, i, "m")
+
+    def complete_column(self, col: int) -> None:
+        """Completes the collumn with boats (in case that the number of empty spaces is the same as the remaining boats)"""
+        for i in range(10):
+            # TODO: currently only placing middle parts, need to identify wich specific part it is
+            self.set_value(i, col, "m")
+
+    def complete_rows(self) -> None:
+        """Completes all rows that are valid"""
+        for i in range(10):
+            if self.rows[i] >= 1 and self.row_empty_spaces(i) == self.rows[i]:
+                self.complete_row(i)
+                self.rows[i] == -1
+
+    def complete_columns(self) -> None:
+        """Completes all rows that are valid"""
+        for i in range(10):
+            if self.columns[i] >= 1 and self.column_empty_spaces(i) == self.columns[i]:
+                self.complete_column(i)
+                self.columns[i] == -1
+
     def set_value_bulk(self, lst: list, val: str) -> None:
         """Given a list of tuples (or None), sets the values on the positions represented by the tuples to the value given."""
         for pos in lst:
@@ -258,6 +300,8 @@ if __name__ == "__main__":
     board.clear_columns()
     board.clear_rows()
     board.clear_positions()
+    board.complete_rows()
+    board.complete_columns()
     board.display()
     # TODO:
     # Ler o ficheiro do standard input,
