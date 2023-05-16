@@ -44,6 +44,7 @@ class Board:
         self.ships = [4, 3, 2, 1]
 
         self.remaining_spaces = 100
+        self.question_marks = 0
 
     def get_value(self, row: int, col: int) -> str:
         """Devolve o valor na respetiva posição do tabuleiro."""
@@ -53,11 +54,23 @@ class Board:
         """Escreve na posição escolhida, se ja estiver preenchida, nao faz nada"""
         if self.board[row][col] == " ":
             self.board[row][col] = val
-            self.remaining_spaces -= 1
+            if val != "?":
+                self.remaining_spaces -= 1
+            else:
+                self.question_marks += 1
 
             if val != "W" and val != ".":
                 self.rows[row] -= 1
                 self.columns[col] -= 1
+
+        if self.board[row][col] == "?" and val != "." and val != "W" and val != "?":
+            self.board[row][col] = val
+            self.question_marks -= 1
+            if val == " ":
+                self.rows[row] += 1
+                self.columns[col] += 1
+            else:
+                self.remaining_spaces -= 1
 
     def adjacent_vertical_values(self, row: int, col: int) -> (str, str):
         """Devolve os valores imediatamente acima e abaixo,
@@ -123,14 +136,14 @@ class Board:
         for i in range(10):
             self.set_value(i, col, ".")
 
-    def clear_rows(self) -> None:
+    def fill_rows(self) -> None:
         """Fills all complete rows with water."""
         for i in range(10):
             if self.rows[i] == 0:
                 self.fill_row(i)
                 self.rows[i] = -1
 
-    def clear_columns(self) -> None:
+    def fill_columns(self) -> None:
         """Fills all complete collumns with water."""
         for i in range(10):
             if self.columns[i] == 0:
@@ -156,14 +169,12 @@ class Board:
     def complete_row(self, row: int) -> None:
         """Completes the row with boats (in case that the number of empty spaces is the same as the remaining boats)"""
         for i in range(10):
-            # TODO: currently only placing middle parts, need to identify wich specific part it is
-            self.set_value(row, i, "m")
+            self.set_value(row, i, "?")
 
     def complete_column(self, col: int) -> None:
         """Completes the collumn with boats (in case that the number of empty spaces is the same as the remaining boats)"""
         for i in range(10):
-            # TODO: currently only placing middle parts, need to identify wich specific part it is
-            self.set_value(i, col, "m")
+            self.set_value(i, col, "?")
 
     def complete_rows(self) -> None:
         """Completes all rows that are valid"""
@@ -228,16 +239,78 @@ class Board:
             for j in range(10):
                 self.clear_surroundings(i, j)
 
-    def cleanup(self):
-        current = -1
+    def decide_square(self, row: int, col: int) -> None:
+        # Up, Down, Left, Right
+        adjacents = [
+            self.adjacent_vertical_values(row, col)[0],
+            self.adjacent_vertical_values(row, col)[1],
+            self.adjacent_horizontal_values(row, col)[0],
+            self.adjacent_horizontal_values(row, col)[1],
+        ]
 
-        while self.remaining_spaces != current:
-            current = self.remaining_spaces
-            self.clear_columns()
-            self.clear_rows()
+        for i in range(4):
+            if adjacents[i] == " ":
+                return
+
+            if adjacents[i] is None or adjacents[i] == "." or adjacents[i] == "W":
+                adjacents[i] = "W"
+            else:
+                adjacents[i] = "B"
+
+        up, down, left, right = adjacents
+        new_value = ""
+        if up == "W":
+            if down == "W":
+                if left == "W":
+                    if right == "W":
+                        new_value = "c"
+                    else:
+                        new_value = "l"
+                else:
+                    if right == "W":
+                        new_value = "r"
+                    else:
+                        new_value = "m"
+            else:
+                new_value = "t"
+        else:
+            if down == "W":
+                new_value = "b"
+            else:
+                new_value = "m"
+
+        self.set_value(row, col, new_value)
+
+    def decide_squares(self, hard: bool) -> None:
+        if hard:
+            for i in range(10):
+                for j in range(10):
+                    if self.get_value(i, j) == "?":
+                        self.set_value(i, j, " ")
+        else:
+            for i in range(10):
+                for j in range(10):
+                    if self.get_value(i, j) == "?":
+                        self.decide_square(i, j)
+
+    def cleanup(self):
+        current_spaces = -1
+        current_question_marks = -1
+
+        while (
+            self.remaining_spaces != current_spaces
+            or self.question_marks != current_question_marks
+        ):
+            current_spaces = self.remaining_spaces
+            current_question_marks = self.question_marks
+            self.fill_columns()
+            self.fill_rows()
             self.clear_positions()
             self.complete_columns()
             self.complete_rows()
+            self.decide_squares(False)
+
+        self.decide_squares(True)
 
     @staticmethod
     def parse_instance():
