@@ -42,8 +42,6 @@ class Board:
         self.rows = rows
         self.columns = columns
 
-        self.ships = [4, 3, 2, 1]
-
         self.remaining_spaces = 100
         self.question_marks = 0
 
@@ -398,6 +396,54 @@ class Board:
 
         self.decide_squares(True)
 
+    def check_boats(self):
+        boats = [4, 3, 2, 1]
+
+        for i in range(10):
+            for j in range(10):
+                if self.get_value(i, j) in ["C", "c"]:
+                    boats[0] -= 1
+                elif self.get_value(i, j) in ["T", "t"]:
+                    k = 1
+
+                    while self.get_value(i + k, j) in ["M", "m"]:
+                        k += 1
+
+                    if self.get_value(i + k, j) in ["B", "b"]:
+                        if k <= 3:
+                            boats[k] -= 1
+                        else:
+                            return -1
+                    elif self.get_value(i + k, j) == " ":
+                        pass
+                    else:
+                        return -1
+                elif self.get_value(i, j) in ["L", "l"]:
+                    k = 1
+
+                    while self.get_value(i, j + k) in ["M", "m"]:
+                        k += 1
+
+                    if self.get_value(i, j + k) in ["R", "r"]:
+                        if k <= 3:
+                            boats[k] -= 1
+                        else:
+                            return -1
+                    elif self.get_value(i, j + k) == " ":
+                        pass
+                    else:
+                        return -1
+
+        for x in boats:
+            if x < 0:
+                return -1
+
+        for x in boats:
+            if x > 0:
+                return 1
+
+        return 0
+
     @staticmethod
     def parse_instance():
         """Lê o test do standard input (stdin) que é passado como argumento
@@ -463,8 +509,16 @@ class Bimaru(Problem):
         """Retorna True se e só se o estado passado como argumento é
         um estado objetivo. Deve verificar se todas as posições do tabuleiro
         estão preenchidas de acordo com as regras do problema."""
-        # TODO
-        return state.board.remaining_spaces == 0
+
+        for x in state.board.rows:
+            if x != -1:
+                return False
+
+        for x in state.board.columns:
+            if x != -1:
+                return False
+
+        return state.board.remaining_spaces == 0 and (state.board.check_boats() == 0)
 
     def h(self, node: Node):
         """Função heuristica utilizada para a procura A*."""
@@ -476,19 +530,12 @@ class Bimaru(Problem):
 
 if __name__ == "__main__":
     board = Board.parse_instance()
+
     problem = Bimaru(board)
     dfs = depth_first_tree_search(problem)
-    for x in dfs.path():
-        x.state.board.display()
+    # for x in dfs.path():
+    #    x.state.board.display()
     dfs.state.board.display()
-    """
-    problem = Bimaru(board)
-    res = depth_first_tree_search(problem)
-    res.state.board.display()
-    print(list(res.solution()))
-    for x in res.path():
-        x.state.board.display()
-    """
 
     # TODO:
     # Ler o ficheiro do standard input,
