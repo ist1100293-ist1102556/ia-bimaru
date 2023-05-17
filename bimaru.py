@@ -7,6 +7,7 @@
 # 102556 Daniel Carvalho
 
 import sys
+import copy
 from search import (
     Problem,
     Node,
@@ -209,23 +210,23 @@ class Board:
         adjacent_horizontal = self.adjacent_horizontal_coords(row, col)
         adjacent_vertical = self.adjacent_vertical_coords(row, col)
 
-        if current_simbol == "T":
+        if current_simbol in ["T", "t"]:
             positions_to_clean.append(adjacent_horizontal[0])
             positions_to_clean.append(adjacent_horizontal[1])
             positions_to_clean.append(adjacent_vertical[0])
-        elif current_simbol == "B":
+        elif current_simbol in ["B", "b"]:
             positions_to_clean.append(adjacent_horizontal[0])
             positions_to_clean.append(adjacent_horizontal[1])
             positions_to_clean.append(adjacent_vertical[1])
-        elif current_simbol == "L":
+        elif current_simbol in ["L", "l"]:
             positions_to_clean.append(adjacent_vertical[0])
             positions_to_clean.append(adjacent_vertical[1])
             positions_to_clean.append(adjacent_horizontal[0])
-        elif current_simbol == "R":
+        elif current_simbol in ["R", "r"]:
             positions_to_clean.append(adjacent_vertical[0])
             positions_to_clean.append(adjacent_vertical[1])
             positions_to_clean.append(adjacent_horizontal[1])
-        elif current_simbol == "C":
+        elif current_simbol in ["C", "c"]:
             positions_to_clean.append(adjacent_vertical[0])
             positions_to_clean.append(adjacent_vertical[1])
             positions_to_clean.append(adjacent_horizontal[0])
@@ -281,6 +282,91 @@ class Board:
 
         self.set_value(row, col, new_value)
 
+    def square_possibilities(self, row, col) -> list:
+        up, down = self.adjacent_vertical_values(row, col)
+        left, right = self.adjacent_horizontal_values(row, col)
+        lu, ru, ld, rd = self.adjacent_diagonal_values(row, col)
+
+        eq_water = [None, ".", "W"]
+        eq_top = ["T", "t"]
+        eq_bottom = ["B", "b"]
+        eq_left = ["L", "l"]
+        eq_right = ["R", "r"]
+        eq_middle = ["M", "m"]
+        eq_circle = ["C", "c"]
+
+        possible_values = [".", "t", "b", "l", "r", "c", "m"]
+
+        if up in eq_top:
+            possible_values = [
+                x for x in possible_values if x not in [".", "t", "l", "r", "c"]
+            ]
+        if down in eq_bottom:
+            possible_values = [
+                x for x in possible_values if x not in [".", "b", "l", "r", "c"]
+            ]
+        if left in eq_left:
+            possible_values = [
+                x for x in possible_values if x not in [".", "t", "b", "l", "c"]
+            ]
+        if right in eq_right:
+            possible_values = [
+                x for x in possible_values if x not in [".", "t", "b", "r", "c"]
+            ]
+
+        if up in eq_middle:
+            possible_values = [
+                x for x in possible_values if x not in ["t", "l", "r", "c"]
+            ]
+            if lu in eq_water or ru in eq_water:
+                possible_values = [x for x in possible_values if x not in ["."]]
+
+        if down in eq_middle:
+            possible_values = [
+                x for x in possible_values if x not in ["b", "l", "r", "c"]
+            ]
+            if ld in eq_water or rd in eq_water:
+                possible_values = [x for x in possible_values if x not in ["."]]
+
+        if left in eq_middle:
+            possible_values = [
+                x for x in possible_values if x not in ["t", "b", "l", "c"]
+            ]
+            if lu in eq_water or ld in eq_water:
+                possible_values = [x for x in possible_values if x not in ["."]]
+
+        if right in eq_middle:
+            possible_values = [
+                x for x in possible_values if x not in ["t", "b", "r", "c"]
+            ]
+            if ru in eq_water or rd in eq_water:
+                possible_values = [x for x in possible_values if x not in ["."]]
+
+        if up in eq_water:
+            possible_values = [x for x in possible_values if x not in ["b"]]
+        if down in eq_water:
+            possible_values = [x for x in possible_values if x not in ["t"]]
+        if left in eq_water:
+            possible_values = [x for x in possible_values if x not in ["r"]]
+        if right in eq_water:
+            possible_values = [x for x in possible_values if x not in ["l"]]
+
+        if (
+            (up in eq_water and left in eq_water)
+            or (down in eq_water and left in eq_water)
+            or (up in eq_water and right in eq_water)
+            or (down in eq_water and right in eq_water)
+        ):
+            possible_values.remove("m")
+
+        return possible_values
+
+    def first_empty(self):
+        for i in range(10):
+            for j in range(10):
+                if self.get_value(i, j) == " ":
+                    return (i, j)
+
     def decide_squares(self, hard: bool) -> None:
         if hard:
             for i in range(10):
@@ -329,6 +415,7 @@ class Board:
             hint = input().split("\t")[1:]
             board.set_value(eval(hint[0]), eval(hint[1]), hint[2])
 
+        board.cleanup()
         return board
 
     def display(self):
@@ -344,44 +431,65 @@ class Board:
 
 class Bimaru(Problem):
     def __init__(self, board: Board):
-        """O construtor especifica o estado inicial."""
-        # TODO
-        pass
+        super().__init__(BimaruState(board))
 
     def actions(self, state: BimaruState):
         """Retorna uma lista de ações que podem ser executadas a
         partir do estado passado como argumento."""
-        # TODO
-        pass
+        if state.board.first_empty() is None:
+            return []
+
+        actions = []
+        x, y = state.board.first_empty()
+        for pos in state.board.square_possibilities(x, y):
+            actions.append((x, y, pos))
+
+        return actions
 
     def result(self, state: BimaruState, action):
         """Retorna o estado resultante de executar a 'action' sobre
         'state' passado como argumento. A ação a executar deve ser uma
         das presentes na lista obtida pela execução de
         self.actions(state)."""
-        # TODO
-        pass
+        x, y, val = action
+        old_board = copy.deepcopy(state.board)
+        new_state = BimaruState(old_board)
+        new_state.board.set_value(x, y, val)
+        new_state.board.cleanup()
+
+        return new_state
 
     def goal_test(self, state: BimaruState):
         """Retorna True se e só se o estado passado como argumento é
         um estado objetivo. Deve verificar se todas as posições do tabuleiro
         estão preenchidas de acordo com as regras do problema."""
         # TODO
-        pass
+        return state.board.remaining_spaces == 0
 
     def h(self, node: Node):
         """Função heuristica utilizada para a procura A*."""
         # TODO
-        pass
+        return 0
 
     # TODO: outros metodos da classe
 
 
 if __name__ == "__main__":
     board = Board.parse_instance()
-    board.display()
-    board.cleanup()
-    board.display()
+    problem = Bimaru(board)
+    dfs = depth_first_tree_search(problem)
+    for x in dfs.path():
+        x.state.board.display()
+    dfs.state.board.display()
+    """
+    problem = Bimaru(board)
+    res = depth_first_tree_search(problem)
+    res.state.board.display()
+    print(list(res.solution()))
+    for x in res.path():
+        x.state.board.display()
+    """
+
     # TODO:
     # Ler o ficheiro do standard input,
     # Usar uma técnica de procura para resolver a instância,
