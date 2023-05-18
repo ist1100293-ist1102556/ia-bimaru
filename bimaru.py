@@ -49,7 +49,7 @@ class Board:
         """Devolve o valor na respetiva posição do tabuleiro."""
         return self.board[row][col]
 
-    def set_value(self, row: int, col: int, val: str) -> None:
+    def set_value(self, row: int, col: int, val: str, cleanup=True) -> None:
         """Escreve na posição escolhida, se ja estiver preenchida, nao faz nada"""
         if self.board[row][col] == " ":
             self.board[row][col] = val
@@ -61,6 +61,8 @@ class Board:
             if val != "W" and val != ".":
                 self.rows[row] -= 1
                 self.columns[col] -= 1
+                if cleanup:
+                    self.clear_surroundings(row, col)
 
         if self.board[row][col] == "?" and val != "." and val != "W" and val != "?":
             self.board[row][col] = val
@@ -229,6 +231,23 @@ class Board:
             positions_to_clean.append(adjacent_vertical[1])
             positions_to_clean.append(adjacent_horizontal[0])
             positions_to_clean.append(adjacent_horizontal[1])
+        elif current_simbol in ["M", "m"]:
+            if self.adjacent_vertical_values(row, col)[0] in [
+                "T",
+                "t",
+                "M",
+                "m",
+            ] or self.adjacent_vertical_values(row, col)[1] in ["B", "b", "M", "m"]:
+                positions_to_clean.append(adjacent_horizontal[0])
+                positions_to_clean.append(adjacent_horizontal[1])
+            elif self.adjacent_horizontal_values(row, col)[0] in [
+                "L",
+                "l",
+                "M",
+                "m",
+            ] or self.adjacent_horizontal_values(row, col)[1] in ["R", "r", "M", "m"]:
+                positions_to_clean.append(adjacent_vertical[0])
+                positions_to_clean.append(adjacent_vertical[1])
 
         self.set_value_bulk(positions_to_clean, ".")
 
@@ -355,7 +374,13 @@ class Board:
             or (up in eq_water and right in eq_water)
             or (down in eq_water and right in eq_water)
         ):
-            possible_values.remove("m")
+            possible_values = [x for x in possible_values if x not in ["m"]]
+
+        if self.rows[row] == 1 and right not in ["R", "r", "M", "m"]:
+            possible_values = [x for x in possible_values if x not in ["l"]]
+
+        if self.columns[col] == 1 and down not in ["B", "b", "M", "m"]:
+            possible_values = [x for x in possible_values if x not in ["t"]]
 
         return possible_values
 
@@ -393,8 +418,7 @@ class Board:
             self.complete_columns()
             self.complete_rows()
             self.decide_squares(False)
-
-        self.decide_squares(True)
+            self.decide_squares(True)
 
     def check_boats(self):
         boats = [4, 3, 2, 1]
@@ -459,7 +483,7 @@ class Board:
 
         for i in range(hints):
             hint = input().split("\t")[1:]
-            board.set_value(eval(hint[0]), eval(hint[1]), hint[2])
+            board.set_value(eval(hint[0]), eval(hint[1]), hint[2], cleanup=False)
 
         board.cleanup()
         return board
@@ -533,8 +557,6 @@ if __name__ == "__main__":
 
     problem = Bimaru(board)
     dfs = depth_first_tree_search(problem)
-    # for x in dfs.path():
-    #    x.state.board.display()
     dfs.state.board.display()
 
     # TODO:
