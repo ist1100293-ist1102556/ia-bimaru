@@ -29,11 +29,18 @@ class BimaruState:
     def __lt__(self, other):
         return self.id < other.id
 
-    # TODO: outros metodos da classe
-
 
 class Board:
-    """Representação interna de um tabuleiro de Bimaru."""
+    """Representação interna de um tabuleiro de Bimaru:
+    "." Água
+    "t" Topo
+    "b" Fundo
+    "l" Esquerda
+    "d" Direita
+    "m" meio
+    "c" barco singular
+    " " espaço vazio
+    """
 
     def __init__(self, rows, cols) -> None:
         self.board = [[" " for i in range(10)] for j in range(10)]
@@ -103,7 +110,7 @@ class Board:
             self.get_value(row + 1, col + 1),
         )
 
-    def first_empty_space(self) -> (int, int):
+    def first_empty_space(self) -> (int, int) | None:
         """Devolve a primeira casa vazia no tabuleiro, a contar da esquerda para a direita, de cima para baixo."""
         i, j = self.first_empty
         while i < 10:
@@ -114,6 +121,8 @@ class Board:
                 j += 1
             j = 0
             i += 1
+
+        return None
 
     @staticmethod
     def parse_instance():
@@ -159,8 +168,6 @@ class Board:
             print("Remaining empty positions in row:\n", self.row_remaining)
             print("Remaining boats in col:\n", str(self.cols))
             print("Remaining empty positions in col:\n", self.col_remaining)
-
-    # TODO: outros metodos da classe
 
 
 class Bimaru(Problem):
