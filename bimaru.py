@@ -118,16 +118,14 @@ class Board:
         for i in range(10):
             if self.rows[i] == 0:
                 for j in range(10):
-                    if self.get_value(i, j) == " ":
-                        self.set_value(i, j, ".")
+                    self.place_piece(i, j, ".")
                 self.rows[i] = -1
 
         for j in range(10):
             if self.cols[j] == 0:
                 for i in range(10):
-                    if self.get_value(i, j) == " ":
-                        self.set_value(i, j, ".")
-                self.cols[i] = -1
+                    self.place_piece(i, j, ".")
+                self.cols[j] = -1
 
     def clear_surroundings(self, row: int, col: int) -> None:
         current_simbol = self.get_value(row, col)
@@ -170,11 +168,11 @@ class Board:
         else:
             if current_simbol != "t":
                 positions_to_clear.append(down)
-            elif current_simbol != "b":
+            if current_simbol != "b":
                 positions_to_clear.append(up)
-            elif current_simbol != "l":
+            if current_simbol != "l":
                 positions_to_clear.append(right)
-            elif current_simbol != "r":
+            if current_simbol != "r":
                 positions_to_clear.append(left)
 
         for pos in positions_to_clear:
@@ -192,11 +190,14 @@ class Board:
                     self.place_piece(i, j, "?")
 
     def decide_position(self, row: int, col: int) -> None:
+        if self.get_value(row, col) != "?":
+            return
+
         up, down = self.adjacent_vertical_values(row, col)
         left, right = self.adjacent_horizontal_values(row, col)
 
         if up == " " or down == " " or left == " " or right == " ":
-            self.remove_piece(row, int)
+            return
 
         new = ""
         if up == ".":
@@ -219,13 +220,31 @@ class Board:
             else:
                 new = "m"
 
+        self.remove_piece(row, col)
         self.place_piece(row, col, new)
 
     def cleanup(self) -> None:
-        self.fill_rows_cols_water()
-        for i in range(10):
-            for j in range(10):
-                self.clear_surroundings(i, j)
+        current_remaining = -1
+
+        while current_remaining != self.remaining_positions:
+            current_remaining = self.remaining_positions
+
+            self.fill_rows_cols_water()
+
+            for i in range(10):
+                for j in range(10):
+                    self.clear_surroundings(i, j)
+
+            self.complete_rows_and_collumns()
+
+            for i in range(10):
+                for j in range(10):
+                    self.decide_position(i, j)
+
+            for i in range(10):
+                for j in range(10):
+                    if self.get_value(i, j) == "?":
+                        self.remove_piece(i, j)
 
     def first_empty_space(self) -> (int, int):
         """Devolve a primeira casa vazia no tabuleiro, a contar da esquerda para a direita, de cima para baixo."""
@@ -325,4 +344,4 @@ class Bimaru(Problem):
 if __name__ == "__main__":
     board, hints = Board.parse_instance()
     board.cleanup()
-    board.display()
+    board.display(hints=hints, advanced=False)
