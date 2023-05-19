@@ -66,6 +66,7 @@ class Board:
         if val != " " and self.set_value(row, col, val):
             self.row_remaining[row] -= 1
             self.col_remaining[col] -= 1
+            self.remaining_positions -= 1
 
             if val != ".":
                 self.rows[row] -= 1
@@ -76,6 +77,7 @@ class Board:
         if old_val != " " and self.set_value(row, col, " "):
             self.row_remaining[row] += 1
             self.col_remaining[col] += 1
+            self.remaining_positions += 1
 
             if old_val != ".":
                 self.rows[row] += 1
@@ -119,6 +121,45 @@ class Board:
         e retorna uma instância da classe Board.
         """
 
+        rows = [eval(x) for x in input().split("\t")[1:]]
+        columns = [eval(x) for x in input().split("\t")[1:]]
+
+        board = Board(rows, columns)
+        hints = []
+
+        n = eval(input())
+
+        for i in range(n):
+            x, y, hint = input().split("\t")[1:]
+
+            if hint == "W":
+                board.place_piece(eval(x), eval(y), ".")
+            else:
+                board.place_piece(eval(x), eval(y), hint.lower())
+
+            hints.append((eval(x), eval(y), hint))
+
+        return board, hints
+
+    def display(self, hints=[], advanced=False) -> None:
+        display_board = [[" " for i in range(10)] for j in range(10)]
+        for i in range(10):
+            for j in range(10):
+                display_board[i][j] = self.get_value(i, j)
+
+        for hint in hints:
+            i, j, val = hint
+            display_board[i][j] = val
+
+        print("\n".join(["".join(x) for x in display_board]))
+
+        if advanced:
+            print("Remaining positions:", self.remaining_positions)
+            print("Remaining boats in rows:\n", str(self.rows))
+            print("Remaining empty positions in row:\n", self.row_remaining)
+            print("Remaining boats in col:\n", str(self.cols))
+            print("Remaining empty positions in col:\n", self.col_remaining)
+
     # TODO: outros metodos da classe
 
 
@@ -158,9 +199,6 @@ class Bimaru(Problem):
 
 
 if __name__ == "__main__":
-    # TODO:
-    # Ler o ficheiro do standard input,
-    # Usar uma técnica de procura para resolver a instância,
-    # Retirar a solução a partir do nó resultante,
-    # Imprimir para o standard output no formato indicado.
-    pass
+    board, hints = Board.parse_instance()
+    board.display()
+    board.display(hints=hints, advanced=True)
