@@ -148,23 +148,15 @@ class Board:
         up_value, down_value = self.adjacent_vertical_values(row, col)
         left_value, right_value = self.adjacent_horizontal_values(row, col)
 
-        if current_simbol != "m":
-            if current_simbol != "t":
-                positions_to_clear.append(up)
-            elif current_simbol != "b":
-                positions_to_clear.append(down)
-            elif current_simbol != "l":
-                positions_to_clear.append(left)
-            elif current_simbol != "r":
-                positions_to_clear.append(right)
-        else:
+        if current_simbol == "m":
+            """
             if up_value in ["t", "m"] or down_value in ["b", "m"]:
                 positions_to_clear.append(left)
                 positions_to_clear.append(right)
             elif left_value in ["l", "m"] or right_value in ["r", "m"]:
                 positions_to_clear.append(up)
                 positions_to_clear.append(down)
-
+            """
             if up_value == ".":
                 positions_to_clear.append(down)
             elif down_value == ".":
@@ -173,9 +165,61 @@ class Board:
                 positions_to_clear.append(right)
             elif right_value == ".":
                 positions_to_clear.append(left)
+        elif current_simbol == "?":
+            pass
+        else:
+            if current_simbol != "t":
+                positions_to_clear.append(down)
+            elif current_simbol != "b":
+                positions_to_clear.append(up)
+            elif current_simbol != "l":
+                positions_to_clear.append(right)
+            elif current_simbol != "r":
+                positions_to_clear.append(left)
 
         for pos in positions_to_clear:
             self.place_piece(*pos, ".")
+
+    def complete_rows_and_collumns(self):
+        for i in range(10):
+            if self.row_remaining[i] == self.rows[i]:
+                for j in range(10):
+                    self.place_piece(i, j, "?")
+
+        for j in range(10):
+            if self.col_remaining[j] == self.cols[j]:
+                for i in range(10):
+                    self.place_piece(i, j, "?")
+
+    def decide_position(self, row: int, col: int) -> None:
+        up, down = self.adjacent_vertical_values(row, col)
+        left, right = self.adjacent_horizontal_values(row, col)
+
+        if up == " " or down == " " or left == " " or right == " ":
+            self.remove_piece(row, int)
+
+        new = ""
+        if up == ".":
+            if down == ".":
+                if left == ".":
+                    if right == ".":
+                        new = "c"
+                    else:
+                        new = "l"
+                else:
+                    if right == ".":
+                        new = "r"
+                    else:
+                        new = "m"
+            else:
+                new = "t"
+        else:
+            if down == ".":
+                new = "b"
+            else:
+                new = "m"
+
+        self.place_piece(row, col, new)
 
     def cleanup(self) -> None:
         self.fill_rows_cols_water()
