@@ -70,7 +70,11 @@ class Board:
         return True
 
     def place_piece(self, row: int, col: int, val: str) -> None:
-        if val != " " and self.set_value(row, col, val):
+        if (
+            self.get_value(row, col) == " "
+            and val != " "
+            and self.set_value(row, col, val)
+        ):
             self.row_remaining[row] -= 1
             self.col_remaining[col] -= 1
             self.remaining_positions -= 1
@@ -110,7 +114,76 @@ class Board:
             self.get_value(row + 1, col + 1),
         )
 
-    def first_empty_space(self) -> (int, int) | None:
+    def fill_rows_cols_water(self) -> None:
+        for i in range(10):
+            if self.rows[i] == 0:
+                for j in range(10):
+                    if self.get_value(i, j) == " ":
+                        self.set_value(i, j, ".")
+                self.rows[i] = -1
+
+        for j in range(10):
+            if self.cols[j] == 0:
+                for i in range(10):
+                    if self.get_value(i, j) == " ":
+                        self.set_value(i, j, ".")
+                self.cols[i] = -1
+
+    def clear_surroundings(self, row: int, col: int) -> None:
+        current_simbol = self.get_value(row, col)
+
+        if current_simbol in [" ", "."]:
+            return
+
+        positions_to_clear = [
+            (row - 1, col - 1),
+            (row - 1, col + 1),
+            (row + 1, col - 1),
+            (row + 1, col + 1),
+        ]
+
+        up, down = (row - 1, col), (row + 1, col)
+        left, right = (row, col - 1), (row, col + 1)
+
+        up_value, down_value = self.adjacent_vertical_values(row, col)
+        left_value, right_value = self.adjacent_horizontal_values(row, col)
+
+        if current_simbol != "m":
+            if current_simbol != "t":
+                positions_to_clear.append(up)
+            elif current_simbol != "b":
+                positions_to_clear.append(down)
+            elif current_simbol != "l":
+                positions_to_clear.append(left)
+            elif current_simbol != "r":
+                positions_to_clear.append(right)
+        else:
+            if up_value in ["t", "m"] or down_value in ["b", "m"]:
+                positions_to_clear.append(left)
+                positions_to_clear.append(right)
+            elif left_value in ["l", "m"] or right_value in ["r", "m"]:
+                positions_to_clear.append(up)
+                positions_to_clear.append(down)
+
+            if up_value == ".":
+                positions_to_clear.append(down)
+            elif down_value == ".":
+                positions_to_clear.append(up)
+            elif left_value == ".":
+                positions_to_clear.append(right)
+            elif right_value == ".":
+                positions_to_clear.append(left)
+
+        for pos in positions_to_clear:
+            self.place_piece(*pos, ".")
+
+    def cleanup(self) -> None:
+        self.fill_rows_cols_water()
+        for i in range(10):
+            for j in range(10):
+                self.clear_surroundings(i, j)
+
+    def first_empty_space(self) -> (int, int):
         """Devolve a primeira casa vazia no tabuleiro, a contar da esquerda para a direita, de cima para baixo."""
         i, j = self.first_empty
         while i < 10:
@@ -207,4 +280,5 @@ class Bimaru(Problem):
 
 if __name__ == "__main__":
     board, hints = Board.parse_instance()
+    board.cleanup()
     board.display()
