@@ -201,4 +201,3 @@ class Bimaru(Problem):
 if __name__ == "__main__":
     board, hints = Board.parse_instance()
     board.display()
-    board.display(hints=hints, advanced=True)
