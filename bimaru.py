@@ -260,6 +260,105 @@ class Board:
 
         return None
 
+    def square_possibilities(self, row: int, col: int) -> list:
+        up, down = self.adjacent_vertical_values(row, col)
+        left, right = self.adjacent_horizontal_values(row, col)
+        lu, ru, ld, rd = self.adjacent_diagonal_values(row, col)
+
+        # Indexes represents if the corresponding value is still possible
+        possible_values = [".", "t", "b", "l", "r", "c", "m"]
+        indexes = [True, True, True, True, True, True]
+
+        if up == "t":
+            # Remove [".", "t", "l", "r", "c"]
+            indexes[0], indexes[1], indexes[3], indexes[4], indexes[5] = (
+                False,
+                False,
+                False,
+                False,
+                False,
+            )
+        if down == "b":
+            # Remove [".", "b", "l", "r", "c"]
+            indexes[0], indexes[2], indexes[3], indexes[4], indexes[5] = (
+                False,
+                False,
+                False,
+                False,
+                False,
+            )
+        if left = "l":
+            # Remove [".", "t", "b", "l", "c"]
+            indexes[0], indexes[1], indexes[2], indexes[3], indexes[5] = (
+                False,
+                False,
+                False,
+                False,
+                False,
+            )
+        if right = "r":
+            # Remove [".", "t", "b", "r", "c"]
+            indexes[0], indexes[1], indexes[2], indexes[4], indexes[5] = (
+                False,
+                False,
+                False,
+                False,
+                False,
+            )
+
+        if up == "m":
+            # Remove ["t", "l", "r", "c"]
+            indexes[1], indexes[3], indexes[4], indexes[5] = False, False, False, False
+            if lu == "." or ru == ".":
+                indexes[0] = False
+        if down == "m":
+            # Remove ["b", "l", "r", "c"]
+            indexes[2], indexes[3], indexes[4], indexes[5] = False, False, False, False
+            if ld == "." or rd == ".":
+                indexes[0] = False
+        if left == "m":
+            # Remove ["t", "b", "l", "c"]
+            indexes[1], indexes[2], indexes[3], indexes[5] = False, False, False, False
+            if lu == "." or ld == ".":
+                indexes[0] = False
+        if right == "m":
+            # Remove ["t", "b", "r", "c"]
+            indexes[1], indexes[2], indexes[4], indexes[5] = False, False, False, False
+            if ru == "." or rd == ".":
+                indexes[0] = False
+        
+        if up == ".":
+            # Remove ["b"]
+            indexes[2] = False
+        if down == ".":
+            # Remove ["t"]
+            indexes[1] = False
+        if left == ".":
+            # Remove ["r"]
+            indexes[4] = False
+        if right == ".":
+            # Remove ["l"]
+            indexes[3] = False
+
+        if (up == "." and left == ".") or (up == "." and right == ".") or (down == "." and left == ".") or (down == "." and right == "."):
+            # Remove ["m"]
+            indexes[6] = False
+
+        if self.rows[row] == 1 and right not in ["r", "m"]:
+            # Remove ["l"]
+            index[3] = False
+
+        if self.columns[col] == 1 and down not in ["b", "m"]:
+            # Remove ["t"]
+            indexes[1] = False
+
+        values = []
+        for i in range(7):
+            if index[i]:
+                values.append(possible_values[i])
+
+        return values
+
     @staticmethod
     def parse_instance():
         """Lê o test do standard input (stdin) que é passado como argumento
