@@ -563,12 +563,9 @@ class Bimaru(Problem):
 
 if __name__ == "__main__":
     board = Board.parse_instance()
-    board.cleanup()
-    board.display()
-
-    """
     problem = Bimaru(board)
 
+    """
     compare_searchers(
         [problem],
         ["Searcher", "Successors | Goal_Tests | States | Found"],
@@ -578,9 +575,9 @@ if __name__ == "__main__":
             iterative_deepening_search,
         ],
     )
+    """
     res = depth_first_tree_search(problem)
     res.state.board.display()
-    """
 
     # TODO:
     # Ler o ficheiro do standard input,

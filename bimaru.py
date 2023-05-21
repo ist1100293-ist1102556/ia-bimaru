@@ -7,6 +7,7 @@
 # 102556 Daniel Carvalho
 
 import sys
+import copy
 from search import (
     Problem,
     Node,
@@ -267,7 +268,7 @@ class Board:
 
         # Indexes represents if the corresponding value is still possible
         possible_values = [".", "t", "b", "l", "r", "c", "m"]
-        indexes = [True, True, True, True, True, True]
+        indexes = [True, True, True, True, True, True, True]
 
         if up == "t":
             # Remove [".", "t", "l", "r", "c"]
@@ -287,7 +288,7 @@ class Board:
                 False,
                 False,
             )
-        if left = "l":
+        if left == "l":
             # Remove [".", "t", "b", "l", "c"]
             indexes[0], indexes[1], indexes[2], indexes[3], indexes[5] = (
                 False,
@@ -296,7 +297,7 @@ class Board:
                 False,
                 False,
             )
-        if right = "r":
+        if right == "r":
             # Remove [".", "t", "b", "r", "c"]
             indexes[0], indexes[1], indexes[2], indexes[4], indexes[5] = (
                 False,
@@ -326,7 +327,7 @@ class Board:
             indexes[1], indexes[2], indexes[4], indexes[5] = False, False, False, False
             if ru == "." or rd == ".":
                 indexes[0] = False
-        
+
         if up == ".":
             # Remove ["b"]
             indexes[2] = False
@@ -340,24 +341,88 @@ class Board:
             # Remove ["l"]
             indexes[3] = False
 
-        if (up == "." and left == ".") or (up == "." and right == ".") or (down == "." and left == ".") or (down == "." and right == "."):
+        if (
+            (up == "." and left == ".")
+            or (up == "." and right == ".")
+            or (down == "." and left == ".")
+            or (down == "." and right == ".")
+        ):
             # Remove ["m"]
             indexes[6] = False
 
         if self.rows[row] == 1 and right not in ["r", "m"]:
             # Remove ["l"]
-            index[3] = False
+            indexes[3] = False
 
-        if self.columns[col] == 1 and down not in ["b", "m"]:
+        if self.cols[col] == 1 and down not in ["b", "m"]:
             # Remove ["t"]
             indexes[1] = False
 
         values = []
         for i in range(7):
-            if index[i]:
+            if indexes[i]:
                 values.append(possible_values[i])
 
         return values
+
+    def boat_count(self) -> list:
+        boats = [0, 0, 0, 0]
+
+        for i in range(10):
+            for j in range(10):
+                if self.get_value(i, j) == "c":
+                    boats[0] += 1
+
+                elif self.get_value(i, j) == "t":
+                    k = 1
+
+                    while self.get_value(i + k, j) == "m":
+                        k += 1
+
+                    if self.get_value(i + k, j) == "b":
+                        if k <= 3:
+                            boats[k] += 1
+                        else:
+                            return None
+
+                    elif self.get_value(i + k, j) == " ":
+                        pass
+                    else:
+                        return None
+                elif self.get_value(i, j) == "l":
+                    k = 1
+
+                    while self.get_value(i, j + k) == "m":
+                        k += 1
+
+                    if self.get_value(i, j + k) == "r":
+                        if k <= 3:
+                            boats[k] += 1
+                        else:
+                            return None
+                    elif self.get_value(i, j + k) == " ":
+                        pass
+                    else:
+                        return None
+
+        return boats
+
+    def board_valid(self) -> int:
+        target = [4, 3, 2, 1]
+        current = self.boat_count()
+
+        if current == None:
+            return -1
+
+        for i in range(4):
+            if current[i] > target[i]:
+                return -1
+
+        for i in range(4):
+            if current[i] < target[i]:
+                return 1
+
+        return 0
 
     @staticmethod
     def parse_instance():
@@ -383,6 +448,8 @@ class Board:
 
             hints.append((eval(x), eval(y), hint))
 
+        board.cleanup()
+
         return board, hints
 
     def display(self, hints=[], advanced=False) -> None:
@@ -407,30 +474,50 @@ class Board:
 
 class Bimaru(Problem):
     def __init__(self, board: Board):
-        """O construtor especifica o estado inicial."""
-        # TODO
-        pass
+        super().__init__(BimaruState(board))
 
     def actions(self, state: BimaruState):
         """Retorna uma lista de ações que podem ser executadas a
         partir do estado passado como argumento."""
-        # TODO
-        pass
+        if state.board.first_empty_space() is None:
+            return []
+
+        if state.board.board_valid() == -1:
+            return []
+
+        actions = []
+        x, y = state.board.first_empty_space()
+        for pos in state.board.square_possibilities(x, y):
+            actions.append((x, y, pos))
+
+        return actions
 
     def result(self, state: BimaruState, action):
         """Retorna o estado resultante de executar a 'action' sobre
         'state' passado como argumento. A ação a executar deve ser uma
         das presentes na lista obtida pela execução de
         self.actions(state)."""
-        # TODO
-        pass
+        x, y, val = action
+        old_board = copy.deepcopy(state.board)
+        new_state = BimaruState(old_board)
+        new_state.board.place_piece(x, y, val)
+        new_state.board.cleanup()
+
+        return new_state
 
     def goal_test(self, state: BimaruState):
         """Retorna True se e só se o estado passado como argumento é
         um estado objetivo. Deve verificar se todas as posições do tabuleiro
         estão preenchidas de acordo com as regras do problema."""
-        # TODO
-        pass
+        for x in state.board.rows:
+            if x != -1:
+                return False
+
+        for x in state.board.cols:
+            if x != -1:
+                return False
+
+        return state.board.remaining_positions == 0 and (state.board.board_valid() == 0)
 
     def h(self, node: Node):
         """Função heuristica utilizada para a procura A*."""
@@ -442,5 +529,8 @@ class Bimaru(Problem):
 
 if __name__ == "__main__":
     board, hints = Board.parse_instance()
-    board.cleanup()
-    board.display(hints=hints, advanced=False)
+
+    problem = Bimaru(board)
+
+    res = depth_first_tree_search(problem)
+    res.state.board.display(hints=hints)
