@@ -56,7 +56,7 @@ class Board:
 
         self.first_empty = (0, 0)
 
-    def get_value(self, row: int, col: int) -> str | None:
+    def get_value(self, row: int, col: int) -> str:
         """Devolve o valor na respetiva posição do tabuleiro."""
         if row < 0 or row > 9 or col < 0 or col > 9:
             return "."
