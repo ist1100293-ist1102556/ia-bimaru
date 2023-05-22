@@ -16,6 +16,8 @@ from search import (
     depth_first_tree_search,
     greedy_search,
     recursive_best_first_search,
+    iterative_deepening_search,
+    compare_searchers,
 )
 
 
@@ -259,9 +261,11 @@ class Board:
 
             self.fill_rows_cols_water()
 
+            """
             for i in range(10):
                 for j in range(10):
                     self.clear_surroundings(i, j)
+            """
 
             self.complete_rows_and_collumns()
 
@@ -548,8 +552,21 @@ class Bimaru(Problem):
 
     def h(self, node: Node):
         """Função heuristica utilizada para a procura A*."""
-        # TODO
-        pass
+        boats = node.state.board.boat_count()
+
+        if boats is None:
+            return 40000
+
+        return (
+            1000 * (1 - boats[3])
+            + 100 * (2 - boats[2])
+            + 10 * (3 - boats[1])
+            + (4 - boats[0])
+        )
+
+        """
+        return 20 - (boats[0] + 2 * boats[1] + 3 * boats[2] + 4 * boats[3])
+        """
 
     # TODO: outros metodos da classe
 
@@ -559,7 +576,24 @@ if __name__ == "__main__":
     """
     board.cleanup()
     board.display(hints=hints, advanced=True)
+    print(hints)
     """
     problem = Bimaru(board)
+    """
+
+    compare_searchers(
+        [problem],
+        ["Searcher", "Successors | Goal_Tests | States | Found"],
+        searchers=[
+            breadth_first_tree_search,
+            depth_first_tree_search,
+            iterative_deepening_search,
+            recursive_best_first_search,
+            greedy_search,
+            astar_search,
+        ],
+    )
+    """
+
     res = depth_first_tree_search(problem)
     res.state.board.display(hints=hints)
