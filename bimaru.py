@@ -84,6 +84,8 @@ class Board:
                 self.rows[row] -= 1
                 self.cols[col] -= 1
 
+                self.clear_surroundings(row, col)
+
     def remove_piece(self, row: int, col: int) -> None:
         old_val = self.get_value(row, col)
         if old_val != " " and self.set_value(row, col, " "):
