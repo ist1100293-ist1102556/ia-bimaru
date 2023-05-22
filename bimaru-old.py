@@ -418,9 +418,8 @@ class Board:
         current_question_marks = -1
 
         while (
-            self.remaining_spaces
-            != current_spaces
-            # or self.question_marks != current_question_marks
+            self.remaining_spaces != current_spaces
+            or self.question_marks != current_question_marks
         ):
             current_spaces = self.remaining_spaces
             current_question_marks = self.question_marks
@@ -564,12 +563,9 @@ class Bimaru(Problem):
 
 if __name__ == "__main__":
     board = Board.parse_instance()
-
     problem = Bimaru(board)
 
     """
-    """
-
     compare_searchers(
         [problem],
         ["Searcher", "Successors | Goal_Tests | States | Found"],
@@ -579,6 +575,12 @@ if __name__ == "__main__":
             iterative_deepening_search,
         ],
     )
-
+    """
     res = depth_first_tree_search(problem)
-    print(len(res.path()))
+    res.state.board.display()
+
+    # TODO:
+    # Ler o ficheiro do standard input,
+    # Usar uma técnica de procura para resolver a instância,
+    # Retirar a solução a partir do nó resultante,
+    # Imprimir para o standard output no formato indicado.

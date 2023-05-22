@@ -16,8 +16,6 @@ from search import (
     depth_first_tree_search,
     greedy_search,
     recursive_best_first_search,
-    iterative_deepening_search,
-    compare_searchers,
 )
 
 
@@ -58,10 +56,6 @@ class Board:
 
         self.first_empty = (0, 0)
 
-        self.boat_pieces_remaining = 20
-        self.boats = [4, 3, 2, 1]
-        self.valid = True
-
     def get_value(self, row: int, col: int) -> str:
         """Devolve o valor na respetiva posição do tabuleiro."""
         if row < 0 or row > 9 or col < 0 or col > 9:
@@ -89,16 +83,6 @@ class Board:
             if val != ".":
                 self.rows[row] -= 1
                 self.cols[col] -= 1
-                self.boat_pieces_remaining -= 1
-                self.clear_surroundings(row, col)
-
-                boat = self.check_built_boat(row, col)
-                if boat == -1:
-                    self.valid = False
-                elif boat == 0:
-                    pass
-                else:
-                    self.boats[boat - 1] -= 1
 
     def remove_piece(self, row: int, col: int) -> None:
         old_val = self.get_value(row, col)
@@ -110,7 +94,6 @@ class Board:
             if old_val != ".":
                 self.rows[row] += 1
                 self.cols[col] += 1
-                self.boat_pieces_remaining += 1
 
     def adjacent_vertical_values(self, row: int, col: int) -> (str, str):
         """Devolve os valores imediatamente acima e abaixo,
@@ -425,118 +408,19 @@ class Board:
         return boats
 
     def board_valid(self) -> int:
-        if not self.valid:
+        target = [4, 3, 2, 1]
+        current = self.boat_count()
+
+        if current == None:
             return -1
 
         for i in range(4):
-            if self.boats[i] < 0:
+            if current[i] > target[i]:
                 return -1
 
         for i in range(4):
-            if self.boats[i] > 0:
+            if current[i] < target[i]:
                 return 1
-
-        return 0
-
-    def check_built_boat(self, row: int, col: int) -> int:
-        current = self.get_value(row, col)
-
-        if current == "c":
-            return 1
-        elif current == "t":
-            k = 1
-
-            while self.get_value(row + k, col) == "m":
-                k += 1
-
-            if self.get_value(row + k, col) == "b":
-                if k <= 3:
-                    return k + 1
-            elif self.get_value(row + k, col) in [" ", "?"]:
-                return 0
-            else:
-                return -1
-        elif current == "b":
-            k = 1
-
-            while self.get_value(row - k, col) == "m":
-                k += 1
-
-            if self.get_value(row - k, col) == "t":
-                if k <= 3:
-                    return k + 1
-            elif self.get_value(row - k, col) in [" ", "?"]:
-                return 0
-            else:
-                return -1
-        elif current == "l":
-            k = 1
-
-            while self.get_value(row, col + k) == "m":
-                k += 1
-
-            if self.get_value(row, col + k) == "r":
-                if k <= 3:
-                    return k + 1
-            elif self.get_value(row, col + k) in [" ", "?"]:
-                return 0
-            else:
-                return -1
-        elif current == "r":
-            k = 1
-
-            while self.get_value(row, col - k) == "m":
-                k += 1
-
-            if self.get_value(row, col - k) == "l":
-                if k <= 3:
-                    return k + 1
-            elif self.get_value(row, col - k) in [" ", "?"]:
-                return 0
-            else:
-                return -1
-        elif current == "m":
-            adjacent_horizontal = self.adjacent_horizontal_values(row, col)
-            adjacent_vertical = self.adjacent_vertical_values(row, col)
-
-            if adjacent_horizontal == ("l", "r"):
-                return 3
-
-            if adjacent_vertical == ("t", "b"):
-                return 3
-
-            if adjacent_horizontal == ("l", "m"):
-                other = self.get_value(row, col + 2)
-                if other == "r":
-                    return 4
-                elif other in [" ", "?"]:
-                    return 0
-                else:
-                    return -1
-            elif adjacent_horizontal == ("m", "r"):
-                other = self.get_value(row, col - 2)
-                if other == "l":
-                    return 4
-                elif other in [" ", "?"]:
-                    return 0
-                else:
-                    return -1
-            elif adjacent_vertical == ("t", "m"):
-                other = self.get_value(row + 2, col)
-                if other == "b":
-                    return 4
-                elif other in [" ", "?"]:
-                    return 0
-                else:
-                    return -1
-            elif adjacent_vertical == ("m", "b"):
-                other = self.get_value(row - 2, col)
-                if other == "t":
-                    return 4
-                elif other in [" ", "?"]:
-                    return 0
-                else:
-                    return -1
 
         return 0
 
@@ -637,12 +521,8 @@ class Bimaru(Problem):
 
     def h(self, node: Node):
         """Função heuristica utilizada para a procura A*."""
-        count = node.state.board.boats
-
-        if node.state.board.board_valid() == -1:
-            return 10000
-
-        return count[3] * 1000 + count[2] * 100 + count[1] * 10 + count[0]
+        # TODO
+        pass
 
     # TODO: outros metodos da classe
 
@@ -650,25 +530,7 @@ class Bimaru(Problem):
 if __name__ == "__main__":
     board, hints = Board.parse_instance()
 
-    """
-    board.display(advanced=True)
-    print(board.square_possibilities(*board.first_empty_space()))
-    """
-
     problem = Bimaru(board)
 
-    compare_searchers(
-        [problem],
-        ["Searcher", "Successors | Goal_Tests | States | Found"],
-        searchers=[
-            depth_first_tree_search,
-            recursive_best_first_search,
-            astar_search,
-            greedy_search,
-        ],
-    )
-
-    """
-    res = astar_search(problem)
+    res = depth_first_tree_search(problem)
     res.state.board.display(hints=hints)
-    """
