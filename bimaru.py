@@ -85,6 +85,13 @@ class Board:
                 self.cols[col] -= 1
 
                 self.clear_surroundings(row, col)
+                for pos in [
+                    (row - 1, col),
+                    (row + 1, col),
+                    (row, col - 1),
+                    (row, col + 1),
+                ]:
+                    self.decide_position(*pos)
 
     def remove_piece(self, row: int, col: int) -> None:
         old_val = self.get_value(row, col)
@@ -122,13 +129,13 @@ class Board:
             if self.rows[i] == 0:
                 for j in range(10):
                     self.place_piece(i, j, ".")
-                self.rows[i] = -1
+                # self.rows[i] = -1
 
         for j in range(10):
             if self.cols[j] == 0:
                 for i in range(10):
                     self.place_piece(i, j, ".")
-                self.cols[j] = -1
+                # self.cols[j] = -1
 
     def clear_surroundings(self, row: int, col: int) -> None:
         current_simbol = self.get_value(row, col)
@@ -158,6 +165,15 @@ class Board:
                 positions_to_clear.append(up)
                 positions_to_clear.append(down)
             """
+
+            if up_value == "." or down_value == ".":
+                self.place_piece(*left, "?")
+                self.place_piece(*right, "?")
+
+            if left_value == "." or right_value == ".":
+                self.place_piece(*up, "?")
+                self.place_piece(*down, "?")
+
             if up_value == ".":
                 positions_to_clear.append(down)
             elif down_value == ".":
@@ -177,6 +193,15 @@ class Board:
                 positions_to_clear.append(right)
             if current_simbol != "r":
                 positions_to_clear.append(left)
+
+            if current_simbol == "t":
+                self.place_piece(row + 1, col, "?")
+            if current_simbol == "b":
+                self.place_piece(row - 1, col, "?")
+            if current_simbol == "l":
+                self.place_piece(row, col + 1, "?")
+            if current_simbol == "r":
+                self.place_piece(row, col - 1, "?")
 
         for pos in positions_to_clear:
             self.place_piece(*pos, ".")
@@ -244,10 +269,10 @@ class Board:
                 for j in range(10):
                     self.decide_position(i, j)
 
-            for i in range(10):
-                for j in range(10):
-                    if self.get_value(i, j) == "?":
-                        self.remove_piece(i, j)
+        for i in range(10):
+            for j in range(10):
+                if self.get_value(i, j) == "?":
+                    self.remove_piece(i, j)
 
     def first_empty_space(self) -> (int, int):
         """Devolve a primeira casa vazia no tabuleiro, a contar da esquerda para a direita, de cima para baixo."""
@@ -512,11 +537,11 @@ class Bimaru(Problem):
         um estado objetivo. Deve verificar se todas as posições do tabuleiro
         estão preenchidas de acordo com as regras do problema."""
         for x in state.board.rows:
-            if x != -1:
+            if x != 0:
                 return False
 
         for x in state.board.cols:
-            if x != -1:
+            if x != 0:
                 return False
 
         return state.board.remaining_positions == 0 and (state.board.board_valid() == 0)
@@ -531,8 +556,10 @@ class Bimaru(Problem):
 
 if __name__ == "__main__":
     board, hints = Board.parse_instance()
-
+    """
+    board.cleanup()
+    board.display(hints=hints, advanced=True)
+    """
     problem = Bimaru(board)
-
     res = depth_first_tree_search(problem)
     res.state.board.display(hints=hints)
