@@ -261,34 +261,40 @@ class Board:
 
             self.fill_rows_cols_water()
 
-            """
             for i in range(10):
                 for j in range(10):
                     self.clear_surroundings(i, j)
-            """
 
             self.complete_rows_and_collumns()
 
             for i in range(10):
                 for j in range(10):
                     self.decide_position(i, j)
-
+        """
         for i in range(10):
             for j in range(10):
                 if self.get_value(i, j) == "?":
                     self.remove_piece(i, j)
+        """
 
     def first_empty_space(self) -> (int, int):
         """Devolve a primeira casa vazia no tabuleiro, a contar da esquerda para a direita, de cima para baixo."""
+        """
         i, j = self.first_empty
         while i < 10:
             while j < 10:
-                if self.get_value(i, j) == " ":
+                if self.get_value(i, j) in [" ", "?"]:
                     self.first_empty = (i, j)
                     return self.first_empty
                 j += 1
             j = 0
             i += 1
+        """
+
+        for i in range(10):
+            for j in range(10):
+                if self.get_value(i, j) in [" ", "?"]:
+                    return (i, j)
 
         return None
 
@@ -300,6 +306,9 @@ class Board:
         # Indexes represents if the corresponding value is still possible
         possible_values = [".", "t", "b", "l", "r", "c", "m"]
         indexes = [True, True, True, True, True, True, True]
+
+        if self.get_value(row, col) == "?":
+            indexes[0] = False
 
         if up == "t":
             # Remove [".", "t", "l", "r", "c"]
@@ -338,25 +347,25 @@ class Board:
                 False,
             )
 
-        if up == "m":
+        if up in ["m", "?"]:
             # Remove ["t", "l", "r", "c"]
             indexes[1], indexes[3], indexes[4], indexes[5] = False, False, False, False
-            if lu == "." or ru == ".":
+            if up == "m" and (lu == "." or ru == "."):
                 indexes[0] = False
-        if down == "m":
+        if down in ["m", "?"]:
             # Remove ["b", "l", "r", "c"]
             indexes[2], indexes[3], indexes[4], indexes[5] = False, False, False, False
-            if ld == "." or rd == ".":
+            if down == "m" and (ld == "." or rd == "."):
                 indexes[0] = False
-        if left == "m":
+        if left in ["m", "?"]:
             # Remove ["t", "b", "l", "c"]
             indexes[1], indexes[2], indexes[3], indexes[5] = False, False, False, False
-            if lu == "." or ld == ".":
+            if left == "m" and (lu == "." or ld == "."):
                 indexes[0] = False
-        if right == "m":
+        if right in ["m", "?"]:
             # Remove ["t", "b", "r", "c"]
             indexes[1], indexes[2], indexes[4], indexes[5] = False, False, False, False
-            if ru == "." or rd == ".":
+            if right == "m" and (ru == "." or rd == "."):
                 indexes[0] = False
 
         if up == ".":
@@ -381,13 +390,14 @@ class Board:
             # Remove ["m"]
             indexes[6] = False
 
-        if self.rows[row] == 1 and right not in ["r", "m"]:
-            # Remove ["l"]
-            indexes[3] = False
+        if self.get_value(row, col) != "?":
+            if self.rows[row] == 1 and right not in ["r", "m", "?"]:
+                # Remove ["l"]
+                indexes[3] = False
 
-        if self.cols[col] == 1 and down not in ["b", "m"]:
-            # Remove ["t"]
-            indexes[1] = False
+            if self.cols[col] == 1 and down not in ["b", "m", "?"]:
+                # Remove ["t"]
+                indexes[1] = False
 
         values = []
         for i in range(7):
@@ -416,7 +426,7 @@ class Board:
                         else:
                             return None
 
-                    elif self.get_value(i + k, j) == " ":
+                    elif self.get_value(i + k, j) in [" ", "?"]:
                         pass
                     else:
                         return None
@@ -431,7 +441,7 @@ class Board:
                             boats[k] += 1
                         else:
                             return None
-                    elif self.get_value(i, j + k) == " ":
+                    elif self.get_value(i, j + k) in [" ", "?"]:
                         pass
                     else:
                         return None
@@ -531,6 +541,10 @@ class Bimaru(Problem):
         x, y, val = action
         old_board = copy.deepcopy(state.board)
         new_state = BimaruState(old_board)
+
+        if new_state.board.get_value(x, y) == "?":
+            new_state.board.remove_piece(x, y)
+
         new_state.board.place_piece(x, y, val)
         new_state.board.cleanup()
 
@@ -540,6 +554,9 @@ class Bimaru(Problem):
         """Retorna True se e só se o estado passado como argumento é
         um estado objetivo. Deve verificar se todas as posições do tabuleiro
         estão preenchidas de acordo com as regras do problema."""
+        if state.board.remaining_positions != 0:
+            return False
+
         for x in state.board.rows:
             if x != 0:
                 return False
@@ -548,7 +565,12 @@ class Bimaru(Problem):
             if x != 0:
                 return False
 
-        return state.board.remaining_positions == 0 and (state.board.board_valid() == 0)
+        for i in range(10):
+            for j in range(10):
+                state.board.decide_position(i, j)
+
+        # return True
+        return state.board.board_valid() == 0
 
     def h(self, node: Node):
         """Função heuristica utilizada para a procura A*."""
@@ -576,11 +598,10 @@ if __name__ == "__main__":
     """
     board.cleanup()
     board.display(hints=hints, advanced=True)
-    print(hints)
     """
     problem = Bimaru(board)
-    """
 
+    """
     compare_searchers(
         [problem],
         ["Searcher", "Successors | Goal_Tests | States | Found"],
@@ -597,3 +618,5 @@ if __name__ == "__main__":
 
     res = depth_first_tree_search(problem)
     res.state.board.display(hints=hints)
+    """
+    """
