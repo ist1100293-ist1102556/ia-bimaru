@@ -2,7 +2,7 @@
 # Devem alterar as classes e funções neste ficheiro de acordo com as instruções do enunciado.
 # Além das funções e classes já definidas, podem acrescentar outras que considerem pertinentes.
 
-# Grupo 00:
+# Grupo 42:
 # 100293 Carlos Felgueiras
 # 102556 Daniel Carvalho
 
@@ -229,7 +229,6 @@ class Board:
         if up == " " or down == " " or left == " " or right == " ":
             return
 
-        new = ""
         if up == ".":
             if down == ".":
                 if left == ".":
@@ -595,12 +594,9 @@ class Bimaru(Problem):
 
 if __name__ == "__main__":
     board, hints = Board.parse_instance()
-    """
     board.cleanup()
     board.display(hints=hints, advanced=True)
-    """
     problem = Bimaru(board)
-
     """
     compare_searchers(
         [problem],
@@ -608,15 +604,15 @@ if __name__ == "__main__":
         searchers=[
             breadth_first_tree_search,
             depth_first_tree_search,
-            iterative_deepening_search,
-            recursive_best_first_search,
             greedy_search,
             astar_search,
         ],
     )
     """
+    """
 
     res = depth_first_tree_search(problem)
     res.state.board.display(hints=hints)
+    """
     """
     """
