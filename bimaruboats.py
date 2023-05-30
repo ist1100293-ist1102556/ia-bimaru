@@ -8,16 +8,7 @@
 
 import sys
 import copy
-from search import (
-    Problem,
-    Node,
-    astar_search,
-    breadth_first_tree_search,
-    depth_first_tree_search,
-    greedy_search,
-    recursive_best_first_search,
-    compare_searchers,
-)
+from search import Problem, Node, depth_first_tree_search
 
 
 class BimaruState:
@@ -38,17 +29,21 @@ class Board:
     def __init__(self, rows, cols) -> None:
         self.board = [[" " for i in range(10)] for j in range(10)]
 
+        # Numero de peças de barco que faltam em cada linha e coluna, contando com as hints.
         self.rows_hints = rows
         self.cols_hints = cols
 
+        # Numero de peças de barco que faltam em cada linha e coluna, contando so os barcos.
         self.rows_boats = copy.deepcopy(rows)
         self.cols_boats = copy.deepcopy(cols)
 
+        # Numero de espaços vazios em cada linha e coluna.
         self.row_spaces = [10 for i in range(10)]
         self.col_spaces = [10 for i in range(10)]
 
         self.remaining_positions = 100
 
+        # Numero de barcos restantes de cada tipo, ordenados por tamanho ascendente.
         self.boats = [4, 3, 2, 1]
 
     def get_value(self, row: int, col: int) -> str:
@@ -59,6 +54,7 @@ class Board:
         return self.board[row][col]
 
     def set_value(self, row: int, col: int, val: str) -> bool:
+        """Define o valor na respetiva posição do tabuleiro. Caso seja dada uma posição fora do tabuleiro, retorna False."""
         if row < 0 or row > 9 or col < 0 or col > 9:
             return False
 
@@ -66,6 +62,7 @@ class Board:
         return True
 
     def place_hint(self, row: int, col: int, val: str) -> None:
+        """Coloca uma hint (exceto agua) na respetiva posição do tabuleiro."""
         if self.get_value(row, col) != " " or val in [".", "W"]:
             return
 
@@ -88,6 +85,7 @@ class Board:
                 self.decide_position(*pos)
 
     def remove_hint(self, row: int, col: int) -> None:
+        """Remove uma hint de peça de barco da respetiva posição."""
         old_val = self.get_value(row, col)
 
         if old_val not in ["T", "B", "L", "R", "M", "C", "?"]:
@@ -103,6 +101,8 @@ class Board:
         self.cols_hints[col] += 1
 
     def place_boat_piece(self, row: int, col: int, val: int) -> None:
+        """Coloca uma peça de barco na respetiva posição, caso haja uma hint no local,
+        remove-a antes de colocar a peça de barco."""
         self.remove_hint(row, col)
         if self.set_value(row, col, val):
             self.row_spaces[row] -= 1
@@ -126,6 +126,7 @@ class Board:
                 self.decide_position(*pos)
 
     def place_water(self, row: int, col: int):
+        """Coloca agua na posição dada."""
         if self.get_value(row, col) != " ":
             return
 
@@ -143,6 +144,7 @@ class Board:
                 self.decide_position(*pos)
 
     def place_boat(self, row: int, col: int, size: int, direction: str) -> None:
+        """Coloca um barco completo dada a posição inicial, direção e tamanho"""
         self.boats[size - 1] -= 1
 
         if size == 1:
@@ -179,7 +181,7 @@ class Board:
         return (self.get_value(row, col - 1), self.get_value(row, col + 1))
 
     def adjacent_diagonal_values(self, row: int, col: int) -> (str, str, str, str):
-        """Devolve os valores imediatamente acima á esquerda, acima à direita, abaixo à esquerda e abaixo à direita,
+        """Devolve os valores imediatamente acima a esquerda, acima a direita, abaixo a esquerda e abaixo a direita,
         respectivamente."""
         return (
             self.get_value(row - 1, col - 1),
@@ -189,6 +191,7 @@ class Board:
         )
 
     def clear_surroundings(self, row: int, col: int) -> None:
+        """Preenche a vizinhança de uma posição, baseado no conteudo dela mesma."""
         current_simbol = self.get_value(row, col)
 
         if current_simbol in [" ", "."]:
@@ -208,18 +211,22 @@ class Board:
         left_value, right_value = self.adjacent_horizontal_values(row, col)
 
         if current_simbol in ["m", "M"]:
+            # Significa que o barco e horizontal, logo existem peças a esquerda e direita.
             if up_value == "." or down_value == ".":
                 self.place_hint(*left, "?")
                 self.place_hint(*right, "?")
 
+            # Significa que o barco e vertical, logo existem peças acima e abaixo.
             if left_value == "." or right_value == ".":
                 self.place_hint(*up, "?")
                 self.place_hint(*down, "?")
 
+            # Significa que e um barco horizontal.
             if up_value == ".":
                 positions_to_clear.append(down)
             elif down_value == ".":
                 positions_to_clear.append(up)
+            # Significa que e um barco vertical.
             elif left_value == ".":
                 positions_to_clear.append(right)
             elif right_value == ".":
@@ -249,12 +256,14 @@ class Board:
             self.place_water(*pos)
 
     def decide_position(self, row: int, col: int) -> None:
+        """Tenta descobrir que tipo de peça de barco e um dado placeholder ('?'), caso nao consiga, mantem."""
         if self.get_value(row, col) != "?":
             return
 
         up, down = self.adjacent_vertical_values(row, col)
         left, right = self.adjacent_horizontal_values(row, col)
 
+        # Caso algum vizinho ainda esteja vazio, nao e possivel dizer com certeza qual o tipo de peça.
         if up == " " or down == " " or left == " " or right == " ":
             return
 
@@ -282,6 +291,7 @@ class Board:
         self.place_hint(row, col, new)
 
     def fill_rows_cols(self) -> None:
+        """Preenche com agua todas as linhas ou colunas cujo numero de peças de barco restantes seja nulo."""
         for i in range(10):
             if self.rows_hints[i] == 0:
                 for j in range(10):
@@ -293,6 +303,9 @@ class Board:
                     self.place_water(i, j)
 
     def complete_rows_cols(self) -> None:
+        """Completa com placeholders ('?') todas as linhas e colunas
+        cujo numero de peças de barco restantes seja igual ao numero de espaços vazios.
+        """
         for i in range(10):
             if self.row_spaces[i] == self.rows_hints[i]:
                 for j in range(10):
@@ -304,6 +317,9 @@ class Board:
                     self.place_hint(i, j, "?")
 
     def cleanup(self) -> None:
+        """Executa, em ciclo, as funçoes descritas acima de forma a tentar
+        preencher o numero maximo de espaços, para quando uma iteração nao alterou nada no board.
+        """
         current_remaining = -1
 
         while current_remaining != self.remaining_positions:
@@ -324,6 +340,9 @@ class Board:
             self.place_guaranteed_boats()
 
     def check_boat(self, row: int, col: int, size: int, direction: str, hard=False):
+        """Verifica se é possivel colocar um barco de um dado tamanho e com uma dada direçao numa posição dada.
+        Caso, hard seja True, apenas verifica se é possivel construir um barco com hints.
+        """
         value = self.get_value(row, col)
         up, down = self.adjacent_vertical_values(row, col)
         left, right = self.adjacent_horizontal_values(row, col)
@@ -336,6 +355,7 @@ class Board:
         values_circle = ["C"] if hard else ["C", "?", " "]
         values_mid = ["M"] if hard else ["M", "?", " "]
 
+        # Caso o barco seja um "C"
         if size == 1:
             if (
                 (up not in values_empty)
@@ -420,6 +440,9 @@ class Board:
         return True
 
     def check_positions_boat(self, size: int):
+        """
+        Retorna todas as posiçoes do board onde e possivel colocar um barco de um tamanho dado.
+        """
         # Otimizar meeter >= size
         avail_rows = [i for i in range(10) if self.rows_boats[i] > 0]
         avail_rows.sort(key=(lambda x: self.rows_hints[x]))
@@ -453,6 +476,7 @@ class Board:
         return positions
 
     def place_guaranteed_boats(self) -> None:
+        """Verifica e coloca todos os barcos que sejam formados na totalidade por hints."""
         for i in range(10):
             for j in range(10):
                 value = self.get_value(i, j)
@@ -474,13 +498,7 @@ class Board:
     @staticmethod
     def parse_instance():
         """Lê o test do standard input (stdin) que é passado como argumento
-        e retorna uma instância da classe Board.
-
-        Por exemplo:
-            $ python3 bimaru.py < input_T01
-
-            > from sys import stdin
-            > line = stdin.readline().split()
+        e retorna uma instância da classe Board bem como uma lista das hints usada no display do board.
         """
         rows = [eval(x) for x in input().split("\t")[1:]]
         columns = [eval(x) for x in input().split("\t")[1:]]
@@ -505,6 +523,11 @@ class Board:
         return board, hints
 
     def display(self, hints=[], advanced=False) -> None:
+        """
+        Mostra o board, visto que a representação interna nao esta de acordo
+        com o output esperado, precisa receber uma lista das hints inicialmente
+        fornecidas de modo a substituir nos locais adequados.
+        """
         display_board = [[" " for i in range(10)] for j in range(10)]
         for i in range(10):
             for j in range(10):
@@ -535,7 +558,11 @@ class Bimaru(Problem):
 
     def actions(self, state: BimaruState):
         """Retorna uma lista de ações que podem ser executadas a
-        partir do estado passado como argumento."""
+        partir do estado passado como argumento.
+        Formato de action: (x, y, tamanho, direçao), direcoes: 'V' ou 'H',
+        caso tamanho = 1, nao importa direcao.
+        (x, y) representa o topo ou esquerda do barco.
+        """
         for k in range(4, 0, -1):
             if state.board.boats[k - 1] > 0:
                 return state.board.check_positions_boat(k)
@@ -585,18 +612,10 @@ class Bimaru(Problem):
             + node.state.board.boats[3] * 4
         )
 
-    # TODO: outros metodos da classe
-
 
 if __name__ == "__main__":
     board, hints = Board.parse_instance()
     problem = Bimaru(board)
-    """
-    compare_searchers(
-        [problem],
-        ["Searcher", "Successors | Goal_Tests | States | Found"],
-        searchers=[depth_first_tree_search],
-    )
-    """
+
     res = depth_first_tree_search(problem)
     res.state.board.display(hints=hints)
